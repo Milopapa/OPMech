@@ -8,7 +8,7 @@ client = discord.Client()
 
 narration = ""
 
-def check_max(roll,skill,diff):
+def check_max(roll, skill, diff):
   if roll<=skill:
     return "SUCCESS"
   elif roll >= diff:
@@ -24,15 +24,32 @@ def check_min(roll, skill, diff):
   else:
     return "A LOSS"
 
-def eval(rolls, skill, diff):
-  rolls.sort(reverse = True)
+def findBest(rolls, skill):
+  if rolls[1] <= skill:
+      bestResult = rolls[1]
+  else:
+      bestResult = rolls[0]
+  return bestResult
 
+def eval(rolls, skill, diff, effort):
+  rolls.sort(reverse = True)
+  
   if rolls[1] == 0:
     narration = "and NARRATION!"
   else:
     narration = ""
-                
-  return "Skill = {sk}, Diff = {df}. Rolls: {maxr},{minr} --> {maxresult} with {minresult} {narr}".format(
+
+  if effort == True:
+    return "Skill = {sk}, Diff = {df}. Rolls: {maxr},{minr} --> {maxresult} with exhaustion {narr}".format(
+              sk = skill,
+              df = diff,
+              maxr = rolls[0],
+              minr = rolls[1],
+              maxresult = check_max(findBest(rolls, skill), skill, diff),
+              narr = narration
+              )
+  else:          
+    return "Skill = {sk}, Diff = {df}. Rolls: {maxr},{minr} --> {maxresult} with {minresult} {narr}".format(
               sk = skill,
               df = diff,
               maxr = rolls[0],
@@ -63,10 +80,15 @@ async def on_message(message):
     if msg.startswith("!roll"):
         params = msg.split("!roll ",1)[1].strip()
 
+        effort = False
+
         if "vs" in params:
           variables = params.split("vs",1)
         elif "v" in params:
           variables = params.split("v",1)
+        elif "e" in params:
+          variables = params.split("e",1)
+          effort = True
         else: 
           variables = params
 
@@ -80,7 +102,7 @@ async def on_message(message):
           diff = 6
 
         rolls = twod10()
-        await message.channel.send(eval(rolls, skill, diff))
+        await message.channel.send(eval(rolls, skill, diff, effort))
 
     if msg.startswith("!eval"):
         params = msg.split("!eval ",1)[1]
