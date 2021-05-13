@@ -82,6 +82,7 @@ async def on_message(message):
 
         effort = False
 
+        #extract skill and diff
         if "vs" in params:
           variables = params.split("vs",1)
         elif "v" in params:
@@ -96,6 +97,7 @@ async def on_message(message):
 
         skill = variables[0]
 
+        #set diff if passed (default 6)
         if len(variables) > 1:
           diff = int(variables[1])
         else:
@@ -105,23 +107,41 @@ async def on_message(message):
         await message.channel.send(eval(rolls, skill, diff, effort))
 
     if msg.startswith("!eval"):
-        params = msg.split("!eval ",1)[1]
-        
         #!eval 3,2 1vs7
-        variables = params.split(",")
+        full_params = msg.split("!eval ",1)[1]
+                
+        variables = full_params.split(" ")
 
-        skill = variables[2]
-        rolls = variables[:2]
-        rolls = [int(i) for i in rolls]
-
+        #get the rolls, variables[0] = 3,8
+        rolls = variables[0].split(",")
+        rolls = [int(i) for i in rolls] #convert to int
         rolls.sort(reverse = True)
-        
-        await message.channel.send("Rolls: {maxr},{minr} --> {maxresult} with {minresult}".format(
-                    maxr = rolls[0],
-                    minr = rolls[1],
-                    maxresult = check_max(rolls[0]),
-                    minresult = check_min(rolls[1])
-                    )) 
+        #get the skill and diff
+        #variables[1]: 2v7
+        params = variables[1]
+        effort = False
+
+        #extract skill and diff
+        if "vs" in params:
+          variables = params.split("vs",1)
+        elif "v" in params:
+          variables = params.split("v",1)
+        elif "e" in params:
+          variables = params.split("e",1)
+          effort = True
+        else: 
+          variables = params
+
+        variables = [int(i) for i in variables]  #convert to int
+        skill = variables[0]
+
+        #set diff if passed (default 6)
+        if len(variables) > 1:
+          diff = int(variables[1])
+        else:
+          diff = 6
+                
+        await message.channel.send(eval(rolls, skill, diff, effort))
 
 keep_alive()
 client.run(os.getenv('TOKEN'))
